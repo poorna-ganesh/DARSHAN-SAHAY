@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crowd Management Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+        .dashboard-grid {
+            grid-template-areas:
+                "header header"
+                "prediction heatmap"
+                "emergency resources"
+                "traffic traffic";
+        }
+        @media (min-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 2fr 1fr;
+                grid-template-rows: auto 1fr 1fr;
+                grid-template-areas:
+                    "prediction heatmap"
+                    "emergency resources"
+                    "traffic resources";
+            }
+        }
+        .card {
+            background-color: #1E1E1E;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.4);
+        }
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            aspect-ratio: 1;
+        }
+        .heatmap-cell {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background-color 0.5s;
+        }
+        .density-1 { background-color: #38a169; } /* green */
+        .density-2 { background-color: #ecc94b; } /* yellow */
+        .density-3 { background-color: #f6ad55; } /* orange */
+        .density-4 { background-color: #ed8936; } /* dark orange */
+        .density-5 { background-color: #e53e3e; } /* red */
+    </style>
+</head>
+<body class="p-6 md:p-10 lg:p-12">
+    <div class="max-w-7xl mx-auto space-y-8">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8">
+            <h1 class="text-4xl font-bold text-white tracking-wide">Crowd Dashboard</h1>
+            <p class="text-lg text-gray-400 mt-2 md:mt-0">Last updated: <span id="last-updated">--:--</span></p>
+        </header>
+
+        <main class="grid lg:dashboard-grid gap-6">
+
+            <!-- AI-Powered Crowd Prediction -->
+            <div id="crowd-prediction-card" class="card p-6 lg:row-start-1 lg:row-end-2">
+                <h2 class="text-2xl font-semibold mb-4 text-white">AI-Powered Crowd Prediction</h2>
+                <div class="flex items-end justify-between">
+                    <div>
+                        <p class="text-gray-400">Predicted Visitors Today</p>
+                        <p id="today-prediction" class="text-6xl font-bold text-teal-400 mt-2">--</p>
+                    </div>
+                </div>
+                <div class="mt-8">
+                    <p class="text-gray-400 mb-2">Hourly Forecast</p>
+                    <div id="hourly-chart" class="flex justify-between items-end h-32 space-x-2">
+                        <div class="flex-grow w-full h-full text-center text-gray-500 flex items-center justify-center">Loading chart...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-Time Crowd Heatmap -->
+            <div id="crowd-heatmap-card" class="card p-6 lg:row-start-1 lg:row-end-2">
+                <h2 class="text-2xl font-semibold mb-4 text-white">Real-Time Crowd Heatmap</h2>
+                <div id="heatmap-container" class="heatmap-grid w-full rounded-md overflow-hidden bg-gray-800">
+                    <div class="col-span-10 row-span-10 text-center text-gray-500 flex items-center justify-center">Loading heatmap...</div>
+                </div>
+                <div class="mt-4 flex flex-wrap justify-center text-sm font-medium">
+                    <span class="inline-flex items-center mx-2 my-1"><span class="w-3 h-3 rounded-full mr-2 bg-green-500"></span>Safe</span>
+                    <span class="inline-flex items-center mx-2 my-1"><span class="w-3 h-3 rounded-full mr-2 bg-yellow-400"></span>Low</span>
+                    <span class="inline-flex items-center mx-2 my-1"><span class="w-3 h-3 rounded-full mr-2 bg-orange-400"></span>Medium</span>
+                    <span class="inline-flex items-center mx-2 my-1"><span class="w-3 h-3 rounded-full mr-2 bg-red-400"></span>High</span>
+                    <span class="inline-flex items-center mx-2 my-1"><span class="w-3 h-3 rounded-full mr-2 bg-red-600"></span>Critical</span>
+                </div>
+            </div>
+
+            <!-- Emergency Response System -->
+            <div id="emergency-card" class="card p-6 lg:row-start-2 lg:row-end-3">
+                <h2 class="text-2xl font-semibold mb-4 text-white">Emergency Response System</h2>
+                <div id="emergency-list" class="space-y-4 max-h-56 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
+                    <div class="text-center text-gray-500">No alerts to display.</div>
+                </div>
+                <button id="trigger-alert-btn" class="mt-6 w-full py-3 px-4 bg-red-600 hover:bg-red-700 transition-colors rounded-lg font-bold text-white">
+                    Trigger Test Alert
+                </button>
+            </div>
+
+            <!-- Resource Manager -->
+            <div id="resources-card" class="card p-6 lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-4">
+                <h2 class="text-2xl font-semibold mb-4 text-white">Resource Manager</h2>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-gray-400 mb-2">Water Tank Level</p>
+                        <div class="w-full bg-gray-700 rounded-full h-3">
+                            <div id="water-bar" class="bg-blue-500 h-3 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                        </div>
+                        <span id="water-percent" class="block text-right text-sm text-gray-400 mt-1">--%</span>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 mb-2">Toilet Availability</p>
+                        <div class="w-full bg-gray-700 rounded-full h-3">
+                            <div id="toilet-bar" class="bg-orange-500 h-3 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                        </div>
+                        <span id="toilet-percent" class="block text-right text-sm text-gray-400 mt-1">--%</span>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 mb-2">Staff on Duty</p>
+                        <p id="staff-count" class="text-3xl font-bold text-yellow-400">--</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Traffic Control Panel -->
+            <div id="traffic-card" class="card p-6 lg:row-start-3 lg:row-end-4">
+                <h2 class="text-2xl font-semibold mb-4 text-white">Traffic Control Panel</h2>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-gray-400">Main Entrance</p>
+                        <p id="traffic-main" class="text-2xl font-bold mt-1 text-green-400">--</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400">Parking Lot A</p>
+                        <p id="traffic-parking" class="text-2xl font-bold mt-1 text-yellow-400">--</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400">Shuttle Services</p>
+                        <p id="traffic-shuttle" class="text-2xl font-bold mt-1 text-blue-400">--</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>
