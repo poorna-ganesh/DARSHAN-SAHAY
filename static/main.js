@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_URL = 'http://127.0.0.1:5000/api/dashboard_data';
+    const API_URL = 'https://darshan-sahay-1.onrender.com/api/dashboard_data';
+
 
     const todayPredictionEl = document.getElementById('today-prediction');
     const hourlyChartEl = document.getElementById('hourly-chart');
