@@ -10,4 +10,4 @@ This project provides a simple, yet eye-catching, web-based dashboard for managi
 - **Resource Manager:** Monitors and displays the status of essential resources.
 - **Traffic Control Panel:** Simulates vehicle flow and traffic status.
 
-## Project Structure
+
